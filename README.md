@@ -1,4 +1,13 @@
-Forked from https://github.com/aeaphichart/HondaECU-1 and fixed to run on Windows 11
+## Honda ECU Diagnostic & Flashing Tool
+
+Based on HondaECU-1 by aeaphichart
+Originally based on HondaECU by Adeen117 / roccofz1
+
+This software is open source and licensed under the GNU GPL v3.0. (Includes third-party libraries and components).
+
+## What Is It?
+
+HondaECU is a ECU diagnostic and flashing tool for Honda Motorcycles (2007-2018) that uses a generic KLINE to USB adapter to read/write/format the ECU and EEPROM chip and perform a binary checksum in-house (see supported checksums list). It also allows you to read and clear any DTCs and monitor live data)
 
 ### Please Donate!
 
@@ -7,8 +16,6 @@ Research and development takes time and money. Since it is my goal to keep this 
 ## Software
 
 # CURRENTLY BROKEN ITEMS: EEPROM READ/WRITE AND ECU FLASH WRITING (I'm working to fix these quickly)
-
-HondaECU uses a generic KLINE to USB adapter to read/write/format the ECU and EEPROM chip and perform a binary checksum in-house (see supported checksums list). It also allows you to read and clear any DTCs.
 
 #### Windows Requirements
 
