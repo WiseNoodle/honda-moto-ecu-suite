@@ -1,0 +1,1 @@
+python -m PyInstaller --clean --noconfirm --name HondaECU --distpath dist/HondaECU-Build --add-data "src/images;images" --hidden-import=threads.kline --paths=src src\__main__.py
