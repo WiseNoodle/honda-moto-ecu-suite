@@ -269,12 +269,6 @@ class KlineWorker(Thread):
     # ---------------------------------------------------------
 
     def DeviceHandler(self, action, device, config):
-        print("[KLINE] DeviceHandler:",
-            "action=", repr(action),
-            "device=", repr(device))
-
-        print("[KLINE] config =", repr(config))
-
         if action == "interrupt":
             raise Exception()
 
@@ -285,29 +279,13 @@ class KlineWorker(Thread):
                 self.__cleanup()
 
         elif action == "activate":
-            print("[KLINE] ACTIVATE START")
-
             self.__clear_data()
-
             adapter = None
 
-            # The control panel gives us the actual FTDI device object.
-            # Use it directly first.
             try:
-                print("[KLINE] Creating KlineAdapter(config)...")
-
                 adapter = KlineAdapter(config)
-
-                print(
-                    "[KLINE] KlineAdapter(config) SUCCESS:",
-                    repr(adapter)
-                )
-
-            except Exception as e:
-                print(
-                    "[KLINE] KlineAdapter(config) FAILED:",
-                    repr(e)
-                )
+            except Exception:
+                adapter = None
 
             # If that doesn't work, use the actual FTDI serial number.
             if adapter is None:
@@ -365,7 +343,7 @@ class KlineWorker(Thread):
                 self.ecu = HondaECU(adapter)
 
                 try:
-                    print("[KLINE] Initial wakeup")
+                    print("[KLINE] Initial wakeup (TURN KEY ON AND CUTOFF SWITCH TO RUN POSITION)")
 
                     self.ecu.init()
                     self.ecu.ping()
@@ -1616,15 +1594,33 @@ class KlineWorker(Thread):
     # ---------------------------------------------------------
 
     def do_probe_tables(self):
+        probe_list = [
+            0x10, 0x11, 0x17,
+            0x20, 0x21,
+            0x60, 0x61,
+            0x67, 0x70, 0x71,
+            0xD0, 0xD1
+        ]
 
-        tables = self.ecu.probe_tables()
+        tables = {}
+
+        for t in probe_list:
+            try:
+                info = self.ecu.send_command(
+                    [0x72],
+                    [0x71, t]
+                )
+
+                if info and info[3] > 2:
+                    tables[t] = [info[3], info[2]]
+
+            except Exception:
+                pass
 
         if len(tables) > 0:
-
             self.tables = tables
 
             for t, d in self.tables.items():
-
                 wx.CallAfter(
                     dispatcher.send,
                     signal="KlineWorker",
@@ -1639,14 +1635,52 @@ class KlineWorker(Thread):
 
             return 0
 
-        else:
-            return 1
+        return 1
 
     # ---------------------------------------------------------
     # UPDATE TABLES
     # ---------------------------------------------------------
 
-    #def do update_state (first)
+    def do_update_tables(self):
+
+        if not self.tables:
+            return 1
+
+        for t in self.tables:
+
+            info = self.ecu.send_command(
+                [0x72],
+                [0x71, t]
+            )
+
+            if info:
+
+                if info[3] > 2:
+
+                    self.tables[t] = [
+                        info[3],
+                        info[2]
+                    ]
+
+                    wx.CallAfter(
+                        dispatcher.send,
+                        signal="KlineWorker",
+                        sender=self,
+                        info="data",
+                        value=(
+                            t,
+                            info[3],
+                            info[2]
+                        )
+                    )
+
+                else:
+                    return 1
+
+            else:
+                return 1
+
+        return 0
 
     # ---------------------------------------------------------
     # BASIC TASKS
@@ -1696,6 +1730,12 @@ class KlineWorker(Thread):
             import traceback
             print("[KLINE] DTC ERROR:", repr(e))
             traceback.print_exc()
+
+        if not self.tables:
+            ret += self.do_probe_tables()
+
+        elif self.update_tables:
+            ret += self.do_update_tables()
 
         return ret
 
@@ -1906,112 +1946,140 @@ class KlineWorker(Thread):
     # ---------------------------------------------------------
 
     def run(self):
+
         while self.parent.run:
+
             if not self.ready:
+
                 time.sleep(.002)
+
                 continue
 
             try:
+
                 if self.state in [ECUSTATE.UNKNOWN, ECUSTATE.OFF]:
+
                     ret = self.do_update_state()
 
                     if ret:
+
                         print("[KLINE] Legacy initialization successful")
+
                         self.state = ECUSTATE.OK
+
                         self.do_on_power()
+
                     else:
+
                         time.sleep(.5)
 
                     continue
 
                 if self.state == ECUSTATE.SECURE:
+
                     self.do_secure()
+
                     continue
 
                 if self.state == ECUSTATE.OK:
+
                     if self.readinfo is not None:
-                        print("[KLINE] READ REQUEST DETECTED:", repr(self.readinfo))
+
+                        print(
+                            "[KLINE] READ REQUEST DETECTED:",
+                            repr(self.readinfo)
+                        )
+
                         self.read_helper()
+
                         self.state = ECUSTATE.OK
+
                         continue
 
                     if self.writeinfo is not None:
+
                         self.write_helper(init=True)
+
                         self.state = ECUSTATE.OK
+
                         continue
 
-                    print("[KLINE] LIVE CHECK: update_tables =", repr(self.update_tables), "tables_probed =", repr(self.tables_probed))
-
-                    if self.update_tables and not self.tables_probed:
-                        print("[KLINE] ========================================")
-                        print("[KLINE] PROBING LIVE DATA TABLES")
-                        print("[KLINE] ========================================")
-
-                        try:
-                            ret = self.do_probe_tables()
-
-                            print("[KLINE] do_probe_tables() returned:", ret)
-                            print("[KLINE] tables:", repr(self.tables))
-
-                            self.tables_probed = True
-
-                        except Exception as e:
-                            import traceback
-                            print("[KLINE] LIVE DATA PROBE ERROR:", repr(e))
-                            traceback.print_exc()
-                            self.tables_probed = True
-
                     ret = self.do_idle_tasks()
+
                     time.sleep(.25)
+
                     continue
 
                 if self.state == ECUSTATE.RECOVER_OLD:
+
                     self.do_basic_tasks()
 
                     if self.writeinfo is not None:
+
                         self.write_helper(init=True)
+
                         self.state = ECUSTATE.OK
 
                     continue
 
                 if self.state == ECUSTATE.RECOVER_NEW:
+
                     self.do_basic_tasks()
 
                     if self.writeinfo is not None:
+
                         self.write_helper(init=True, recover=True)
+
                         self.state = ECUSTATE.OK
 
                     continue
 
                 if self.state == ECUSTATE.WRITE:
+
                     if self.writeinfo is not None:
+
                         self.write_helper()
 
                     self.state = ECUSTATE.OK
+
                     continue
 
                 time.sleep(.01)
 
             except USBError as e:
+
                 print("[KLINE] USB ERROR:", repr(e))
+
                 self.__clear_data()
 
             except FtdiError as e:
+
                 print("[KLINE] FTDI ERROR:", repr(e))
+
                 self.__clear_data()
 
             except OSError as e:
+
                 print("[KLINE] OS ERROR:", repr(e))
+
                 self.__clear_data()
 
             except AttributeError as e:
+
                 import traceback
+
                 print("[KLINE] ATTRIBUTE ERROR:", repr(e))
+
                 traceback.print_exc()
+
                 time.sleep(.5)
 
             except Exception as e:
+
                 import traceback
+
                 print("[KLINE] UNEXPECTED ERROR:", repr(e))
+
                 traceback.print_exc()
+
                 time.sleep(.5)

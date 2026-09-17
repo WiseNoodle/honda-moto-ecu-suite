@@ -238,6 +238,10 @@ class HondaECUDatalogPanel(HondaECUAppPanel):
         if info == "data":
             t = value[0]
             d = value[2][2:]
+
+            if not hasattr(self, "_last_raw_tables"):
+                self._last_raw_tables = {}
+
             if t in [0x10, 0x11, 0x13, 0x17, 0x61]:
                 u = ">H12B"
                 if t is not 0x13:
@@ -246,7 +250,13 @@ class HondaECUDatalogPanel(HondaECUAppPanel):
                         u += "BH"
                     elif t == 0x17:
                         u += "BB"
-                data = HondaECUDatalogPanel.prepare_data1(list(struct.unpack(u, d)), t)
+
+                expected_length = struct.calcsize(u)
+
+                data = HondaECUDatalogPanel.prepare_data1(
+                    list(struct.unpack(u, d[:expected_length])),
+                    t
+                )
                 ld = len(data)
                 for s in self.sensors:
                     if self.sensors[s][4] < ld:
@@ -267,13 +277,40 @@ class HondaECUDatalogPanel(HondaECUAppPanel):
                     self.d1pboxsizer.GetStaticBox().SetLabel(
                         table_name + " (" + mt + ")"
                     )
+                self.Layout()
+
             if t in [0x20, 0x21]:
-                print("[DATA DEBUG] TABLE", hex(t), "raw d =", [hex(x) for x in d])
-                print("[DATA DEBUG] TABLE", hex(t), "length =", len(d))
+                print(
+                    "[DATA DEBUG] TABLE",
+                    hex(t),
+                    "raw d =",
+                    [hex(x) for x in d]
+                )
+                print(
+                    "[DATA DEBUG] TABLE",
+                    hex(t),
+                    "length =",
+                    len(d)
+                )
+                
+                if len(d) < 3:
+                    print(
+                        "[DATA DEBUG] TABLE",
+                        hex(t),
+                        "too short:",
+                        len(d)
+                    )
+                    return
 
-                data = list(struct.unpack(">3B", d))
+                data = list(d)
 
-                print("[DATA DEBUG] TABLE", hex(t), "decoded =", repr(data))
+                print(
+                    "[DATA DEBUG] TABLE",
+                    hex(t),
+                    "decoded/raw bytes =",
+                    [hex(x) for x in data]
+                )
+
                 data[0] = round(data[0] / 0xff * 5, 2)
                 data[1] = round(data[1] / 0xff * 2, 4)
                 data[2] = round(data[2] / 0xff * 5, 2)
@@ -281,16 +318,10 @@ class HondaECUDatalogPanel(HondaECUAppPanel):
                     if self.o2sensor[t][s][5]:
                         self.o2sensor[t][s][1].SetLabel(str(data[self.o2sensor[t][s][4]]))
                         self.o2sensor[t][s][8].Enable()
-                        self.Layout()
-                    # self.mainsizer.Fit(self)
+                        
             if t == 0xd0:
-                print("[DATA DEBUG] TABLE 0xd0 raw d =", [hex(x) for x in d])
-                print("[DATA DEBUG] TABLE 0xd0 length =", len(d))
-                print("[DATA DEBUG] TABLE 0xd0 value[1] =", repr(value[1]))
-
                 data = list(struct.unpack(">7Bb%dB" % (value[1] - 10), d))
 
-                print("[DATA DEBUG] TABLE 0xd0 decoded =", repr(data))
                 data[5] = round(data[5] / 0xff * 5, 3)
                 data[6] = round(data[6] / 0xff * 5, 3)
                 # data[7] = round(data[7]/0xff*5, 2)
@@ -301,8 +332,6 @@ class HondaECUDatalogPanel(HondaECUAppPanel):
                     if self.sensors2[s][5]:
                         self.sensors2[s][1].SetLabel(str(data[self.sensors2[s][4]]))
                         self.sensors2[s][8].Enable()
-                        self.Layout()
-                    # self.mainsizer.Fit(self)
 
         elif info == "state":
             if value == ECUSTATE.OK:
@@ -313,7 +342,6 @@ class HondaECUDatalogPanel(HondaECUAppPanel):
                 self.maintable = None
                 self.d1pboxsizer.GetStaticBox().SetLabel("Table 0x??")
             self.Layout()
-        # self.mainsizer.Fit(self)
 
     def DeviceHandler(self, action, device, config):
         if action == "deactivate":
@@ -322,4 +350,3 @@ class HondaECUDatalogPanel(HondaECUAppPanel):
                     self.sensors[s][1].SetLabel("---")
             self.d1pboxsizer.GetStaticBox().SetLabel("Table 0x??")
             self.Layout()
-        # self.mainsizer.Fit(self)
