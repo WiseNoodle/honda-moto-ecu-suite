@@ -4,7 +4,7 @@
 
 Research and development takes time and money. Since it is my goal to keep this project opensource, if you find this project useful, please consider donating.
 
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=XL3H864LE567E)
+[![KoFi]([https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=XL3H864LE567E](https://ko-fi.com/wisenoodle))
 
 ## Software
 
