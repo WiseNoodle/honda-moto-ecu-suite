@@ -1,10 +1,14 @@
-[![Build Status](https://ci.appveyor.com/api/projects/status/rigvo8jwvgaxcbtp?svg=true)](https://ci.appveyor.com/project/RyanHope/hondaecu)
+Forked from https://github.com/aeaphichart/HondaECU-1 and fixed to run on Windows 11
 
 ### Please Donate!
 
 Research and development takes time and money. Since it is my goal to keep this project opensource, if you find this project useful, please consider donating: [![KoFi]([https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=XL3H864LE567E](https://ko-fi.com/wisenoodle))
 
 ## Software
+
+# CURRENTLY BROKEN ITEMS: EEPROM READ/WRITE AND ECU FLASH WRITING (I'm working to fix these quickly)
+
+HondaECU uses a generic KLINE to USB adapter to read/write/format the ECU and EEPROM chip and perform a binary checksum in-house (see supported checksums list). It also allows you to read and clear any DTCs.
 
 ### Windows
 
@@ -66,7 +70,7 @@ The easiest way to talk to the ECU via the k-line is a USB to serial (TTL) conve
 
 ![kline_interface](http://projects.gonzos.net/wp-content/uploads/2017/04/CTX-kline-interface-1024x514.png)
 
-A generic VAG+Kline+CAN to USB adapter like ![this one](https://www.ebay.com/itm/287536903420?_skw=vag%2Bk%2Bcan+to+usb&itmmeta=01M2RCY4K4YZHDQ4256Q9BYTQK&hash=item42f288f4fc:g:5NIAAeSwR7pqh2rX&itmprp=enc%3AAQALAAAA8GfYFPkwiKCW4ZNSs2u11xBa0WPnpQlDmNFMQrznl0leAjbVMDpAkp2g8eWQDdvFkPG48NWidzDHQ3ZoRqT6YMwzkSNySrdoyKZtf%2BuYQ6QA7lBRvSbpqGKeAoi5PpDu5PkPD5fJLCVVB08DtlgpMIjvQlb9aX%2F8DcIkdmr272Gao%2Bkl2QQ9lTc19uv1XGxmcV3Tn8H61mnsBNlYohC1DanO4y1YUNBtRTc3B62cteF%2BFf7OpeR3ta86BbzV4xNIDVYjnJbAYlQT11ZV3tfgr4JhBZXe56dKRPhYkcHUF28dCSjaPTptEKEmyk3nnfFBmQ%3D%3D|tkp%3ABFBM3Mn4jJZo) worked for me.
+A generic VAG+Kline+CAN to USB adapter like ![this one](https://www.ebay.com/itm/287536903420?_skw=vag%2Bk%2Bcan+to+usb&itmmeta=01M2RCY4K4YZHDQ4256Q9BYTQK&hash=item42f288f4fc:g:5NIAAeSwR7pqh2rX&itmprp=enc%3AAQALAAAA8GfYFPkwiKCW4ZNSs2u11xBa0WPnpQlDmNFMQrznl0leAjbVMDpAkp2g8eWQDdvFkPG48NWidzDHQ3ZoRqT6YMwzkSNySrdoyKZtf%2BuYQ6QA7lBRvSbpqGKeAoi5PpDu5PkPD5fJLCVVB08DtlgpMIjvQlb9aX%2F8DcIkdmr272Gao%2Bkl2QQ9lTc19uv1XGxmcV3Tn8H61mnsBNlYohC1DanO4y1YUNBtRTc3B62cteF%2BFf7OpeR3ta86BbzV4xNIDVYjnJbAYlQT11ZV3tfgr4JhBZXe56dKRPhYkcHUF28dCSjaPTptEKEmyk3nnfFBmQ%3D%3D|tkp%3ABFBM3Mn4jJZo) worked for me in addition to an OBD to motorcycle service plug adapter (Honda).
 
 ### Bench Harness
 
@@ -80,9 +84,8 @@ If you make a bench harness to work with your ECU you will need a 2.5 amp power 
 
 ## General Resources
 
-* http://forum.pgmfi.org/index.php
-* http://ecuhacking.activeboard.com
-* http://www.motorsport-brix.de
+* https://www.ecuconnections.com/forum/
+* 
 * https://gonzos.net/projects/ctx-obd
 * http://opengarages.org/handbook/ebook
 
