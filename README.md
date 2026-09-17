@@ -10,19 +10,17 @@ Research and development takes time and money. Since it is my goal to keep this 
 
 HondaECU uses a generic KLINE to USB adapter to read/write/format the ECU and EEPROM chip and perform a binary checksum in-house (see supported checksums list). It also allows you to read and clear any DTCs.
 
-### Windows
+#### Windows Requirements
 
 HondaECU for Windows requires the libusbK driver. Download [Zadig](https://zadig.akeo.ie/) and use it to install the libusbK driver. There is a usage guide on the Zadig website if you need help using it. Once libusbK is installed for your FTDI device, download the latest release of HondaECU.exe.
 
 
-#### From source
+#### To build from source
 
- https://conda.io/miniconda.html
+ Simply run the `build-excecutable.bat` in the /HondaECU-1/ root folder and your files needed and the .exe will be in /dist/HondaECU/.
 
- ```
-pip install -r requirements.txt --user
- ```
-
+ Or you can just download one of my releases :)
+ 
 ## Checksums
 
 | Model        | Year      | ROM Size | Keihin Code    | Checksum<br>Address | Start<br>Offset | CPU    | Pinout<br>(Gnd,+12,Kline) |
